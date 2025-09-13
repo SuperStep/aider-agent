@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "bitbucket": {
+      "command": "bitbucket-mcp",
+      "args": [],
+      "env": {
+        "BITBUCKET_USER": "REPLACE_WITH_YOUR_USERNAME",
+        "BITBUCKET_APP_PASSWORD": "REPLACE_WITH_YOUR_APP_PASSWORD",
+        "BITBUCKET_WORKSPACE": "REPLACE_WITH_YOUR_WORKSPACE"
+      }
+    },
+    "jira": {
+      "command": "mcp-atlassian",
+      "args": ["--jira"],
+      "env": {
+        "JIRA_EMAIL": "REPLACE_WITH_YOUR_EMAIL",
+        "JIRA_API_TOKEN": "REPLACE_WITH_YOUR_API_TOKEN",
+        "JIRA_SERVER_URL": "REPLACE_WITH_YOUR_SERVER_URL"
+      }
+    }
+  }
+}

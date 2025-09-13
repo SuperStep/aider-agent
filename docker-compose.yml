@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  aider-agent:
+    build: .
+    container_name: aider-agent
+    volumes:
+      - ./workspace:/workspace
+      - .:/config
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - MODEL=${MODEL:-anthropic/claude-3-sonnet}
+      # Bitbucket MCP Configuration
+      - BITBUCKET_USER=${BITBUCKET_USER}
+      - BITBUCKET_APP_PASSWORD=${BITBUCKET_APP_PASSWORD}
+      - BITBUCKET_WORKSPACE=${BITBUCKET_WORKSPACE}
+      # Jira MCP Configuration
+      - JIRA_EMAIL=${JIRA_EMAIL}
+      - JIRA_API_TOKEN=${JIRA_API_TOKEN}
+      - JIRA_SERVER_URL=${JIRA_SERVER_URL}
+    stdin_open: true
+    tty: true
+    command: aider --message "Welcome! I'm ready to help with your coding tasks. I have access to Bitbucket and Jira through MCP clients."

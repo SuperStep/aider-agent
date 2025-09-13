@@ -1,0 +1,11 @@
+{
+  "server": {
+    "command": "bitbucket-mcp",
+    "args": [],
+    "env": {
+      "BITBUCKET_USER": "REPLACE_WITH_YOUR_USERNAME",
+      "BITBUCKET_APP_PASSWORD": "REPLACE_WITH_YOUR_APP_PASSWORD",
+      "BITBUCKET_WORKSPACE": "REPLACE_WITH_YOUR_WORKSPACE"
+    }
+  }
+}
