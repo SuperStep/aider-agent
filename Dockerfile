@@ -1,42 +1,80 @@
-FROM python:3.11-slim
+# Alternative Dockerfile using Python 3.13
+FROM python:3.13-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    nodejs \
-    npm \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies with retries
+RUN set -ex; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        curl \
+        git \
+        ca-certificates \
+        gnupg \
+        build-essential \
+        openssh-client \
+        && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
 
-# Install aider
-RUN pip install git+https://github.com/paul-gauthier/aider.git
-
-# Install MCP clients
-# Install Python MCP client
-RUN pip install git+https://github.com/sooperset/mcp-atlassian.git
-
-# Install Node.js based MCP client (bitbucket-mcp)
-RUN git clone https://github.com/MatanYemini/bitbucket-mcp.git /opt/bitbucket-mcp \
-    && cd /opt/bitbucket-mcp \
-    && npm install \
-    && npm run build
+# Install uv package manager for Python
+RUN pip install --no-cache-dir uv
 
 # Set working directory
-WORKDIR /workspace
+WORKDIR /app
 
-# Copy configuration files
-COPY . .
+# Copy fast-agent source
+COPY fast-agent/ ./fast-agent/
 
-# Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Install fast-agent dependencies using uv
+WORKDIR /app/fast-agent
+RUN uv pip install --system --no-cache-dir -e .
 
-# Set environment variables
-ENV OPENROUTER_API_KEY=""
-ENV MODEL="anthropic/claude-3-sonnet"
+# Copy Bitbucket Server MCP server
+WORKDIR /app
+COPY bitbucket-server-mcp/ ./bitbucket-server-mcp/
+
+# Build Bitbucket Server MCP server
+WORKDIR /app/bitbucket-server-mcp
+RUN npm install && npm run build
+
+# Copy JIRA MCP server
+WORKDIR /app
+COPY mcp-atlassian/ ./mcp-atlassian/
+
+# Install JIRA MCP server dependencies using uv
+WORKDIR /app/mcp-atlassian
+RUN uv pip install --system --no-cache-dir -e .
+
+# Create working directory for the application
+WORKDIR /app
+
+# Copy configuration file
+COPY fastagent.config.yaml /app/fastagent.config.yaml
+
+# Copy and make entrypoint executable as root (before USER switch)
+COPY entrypoint.sh /app/entrypoint.sh
+
+# Create a non-root user for better security and set up SSH directory
+RUN useradd --create-home --shell /bin/bash --user-group --uid 1000 appuser && \
+    mkdir -p /home/appuser/.ssh && \
+    chown -R appuser:appuser /home/appuser/.ssh && \
+    chmod 700 /home/appuser/.ssh && \
+    chown appuser:appuser /app/entrypoint.sh
+
+# Now make entrypoint executable AFTER user creation and chown
+RUN chmod +x /app/entrypoint.sh
+
+# Switch to non-root user for runtime
+USER appuser
+
+# Expose port if needed (fast-agent may expose ports)
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD fast-agent --help || exit 1
 
 # Set entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 
-# Default command
-CMD ["aider", "--mcp-config", "/config/mcp-config/mcp.json", "--message", "Welcome! I'm ready to help with your coding tasks. I have access to Bitbucket and Jira through MCP clients. The ai-code-review repository has been cloned to /workspace/ai-code-review."]
+# Default command to start interactive session
+CMD ["go"]

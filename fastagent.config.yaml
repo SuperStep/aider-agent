@@ -1,0 +1,49 @@
+default_model: gemini-2.0-flash
+
+logger:
+  progress_display: true
+  show_chat: true
+  show_tools: true
+  truncate_tools: true
+
+google:
+  api_key: "${GOOGLE_API_KEY}"
+  base_url: "https://generativelanguage.googleapis.com/v1beta/openai"
+
+mcp:
+  servers:
+    bitbucket:
+      command: "/usr/bin/node"
+      args: ["/app/bitbucket-server-mcp/build/index.js"]
+      env:
+        BITBUCKET_URL: "${BITBUCKET_URL}"
+        BITBUCKET_TOKEN: "${BITBUCKET_TOKEN}"
+        BITBUCKET_WORKSPACE: "${BITBUCKET_WORKSPACE}"
+
+    jira:
+      command: "mcp-atlassian"
+      args: ["jira"]
+      env:
+        JIRA_URL: "${JIRA_URL}"
+        JIRA_USERNAME: "${JIRA_USERNAME}"
+        JIRA_TOKEN: "${JIRA_TOKEN}"
+
+    confluence:
+      command: "mcp-atlassian"
+      args: ["confluence"]
+      env:
+        CONFLUENCE_URL: "${CONFLUENCE_URL}"
+        CONFLUENCE_USERNAME: "${CONFLUENCE_USERNAME}"
+        CONFLUENCE_TOKEN: "${CONFLUENCE_TOKEN}"
+
+    filesystem:
+      transport: "stdio"
+      command: "npx"
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspaces"]
+
+    git:
+      command: "npx"
+      args: ["@cyanheads/git-mcp-server"]
+      env:
+        MCP_LOG_LEVEL: "info"
+        GIT_SIGN_COMMITS: "false"

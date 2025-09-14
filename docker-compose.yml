@@ -1,24 +1,57 @@
 services:
-  aider-agent:
-    build: .
-    container_name: aider-agent
-    volumes:
-      - ./workspace:/workspace
-      - .:/config
-      - ~/.ssh:/root/.ssh:ro
+  bitbucket:
+    image: atlassian/bitbucket:latest
+    ports:
+      - "7990:7990"
+      - "7999:7999"
     environment:
-      - GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
-      - MCP_CONFIG=/config/mcp-config/mcp.json
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - MODEL=${MODEL:-anthropic/claude-3-sonnet}
-      # Bitbucket MCP Configuration
-      - BITBUCKET_USER=${BITBUCKET_USER}
-      - BITBUCKET_APP_PASSWORD=${BITBUCKET_APP_PASSWORD}
-      - BITBUCKET_WORKSPACE=${BITBUCKET_WORKSPACE}
-      # Jira MCP Configuration
-      - JIRA_EMAIL=${JIRA_EMAIL}
-      - JIRA_API_TOKEN=${JIRA_API_TOKEN}
-      - JIRA_SERVER_URL=${JIRA_SERVER_URL}
-    stdin_open: true
-    tty: true
-    command: aider --message "Welcome! I'm ready to help with your coding tasks. The ai-code-review repository has been cloned. Aider is enhanced with MCP clients for Bitbucket and Jira integration."
+      BITBUCKET_SETUP_TOKEN: ${BITBUCKET_SETUP_TOKEN:-}
+      BITBUCKET_SETUP_DISPLAYNAME: ${BITBUCKET_SETUP_DISPLAYNAME:-Bitbucket}
+      BITBUCKET_SETUP_EMAIL: ${BITBUCKET_SETUP_EMAIL:-admin@example.com}
+    volumes:
+      - bitbucket-data:/var/atlassian/application-data/bitbucket
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7990/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  fast-agent:
+    build: .
+    container_name: fast-agent
+    ports:
+      - "8000:8000"
+    environment:
+      # Google API Configuration (required for fast-agent)
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+
+      # Bitbucket Server Configuration (required for pull requests)
+      BITBUCKET_URL: ${BITBUCKET_URL:-}
+      BITBUCKET_TOKEN: ${BITBUCKET_TOKEN:-}
+      BITBUCKET_WORKSPACE: ${BITBUCKET_WORKSPACE:-}
+
+      # JIRA Configuration (required for ticket reading)
+      JIRA_URL: ${JIRA_URL:-}
+      JIRA_USERNAME: ${JIRA_USERNAME:-}
+      JIRA_TOKEN: ${JIRA_TOKEN:-}
+
+      # Confluence Configuration (optional, part of Atlassian integration)
+      CONFLUENCE_URL: ${CONFLUENCE_URL:-}
+      CONFLUENCE_USERNAME: ${CONFLUENCE_USERNAME:-}
+      CONFLUENCE_TOKEN: ${CONFLUENCE_TOKEN:-}
+
+    volumes:
+      # Optional: mount local config for customization
+      - ./fastagent.config.yaml:/app/fastagent.config.yaml:ro
+
+      # SSH keys for git operations (optional)
+      - ~/.ssh:/home/appuser/.ssh:ro
+      - /tmp/.ssh:/tmp/.ssh:ro
+
+      # Workspace volume for git operations (read-write)
+      - ./workspaces:/workspaces:rw
+
+    command: go --servers=bitbucket,git,filesystem
+
+volumes:
+  bitbucket-data:
