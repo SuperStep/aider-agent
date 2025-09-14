@@ -35,3 +35,15 @@ mcp:
         CONFLUENCE_URL: "${CONFLUENCE_URL}"
         CONFLUENCE_USERNAME: "${CONFLUENCE_USERNAME}"
         CONFLUENCE_TOKEN: "${CONFLUENCE_TOKEN}"
+
+    filesystem:
+      transport: "stdio"
+      command: "npx"
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspaces"]
+
+    git:
+      command: "npx"
+      args: ["@cyanheads/git-mcp-server"]
+      env:
+        MCP_LOG_LEVEL: "info"
+        GIT_SIGN_COMMITS: "false"

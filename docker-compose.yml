@@ -18,6 +18,7 @@ services:
 
   fast-agent:
     build: .
+    container_name: fast-agent
     ports:
       - "8000:8000"
     environment:
@@ -43,7 +44,14 @@ services:
       # Optional: mount local config for customization
       - ./fastagent.config.yaml:/app/fastagent.config.yaml:ro
 
-    command: go
+      # SSH keys for git operations (optional)
+      - ~/.ssh:/home/appuser/.ssh:ro
+      - /tmp/.ssh:/tmp/.ssh:ro
+
+      # Workspace volume for git operations (read-write)
+      - ./workspaces:/workspaces:rw
+
+    command: go --servers=bitbucket,git,filesystem
 
 volumes:
   bitbucket-data:

@@ -105,6 +105,11 @@ Once the container is running, you can interact with the agent through various m
 docker-compose exec fast-agent fast-agent go
 ```
 
+### With All Servers (Bitbucket, Git, Filesystem)
+```bash
+docker compose run --rm fast-agent go --servers=bitbucket,git,filesystem
+```
+
 ### Command Line Mode
 ```bash
 docker-compose exec fast-agent fast-agent go --message "Create a pull request for my changes"
