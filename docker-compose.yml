@@ -45,13 +45,12 @@ services:
       - ./fastagent.config.yaml:/app/fastagent.config.yaml:ro
 
       # SSH keys for git operations (optional)
-      - ~/.ssh:/home/appuser/.ssh:ro
-      - /tmp/.ssh:/tmp/.ssh:ro
+      - ~/.ssh:/tmp/.ssh:ro
 
       # Workspace volume for git operations (read-write)
-      - ./workspaces:/workspaces:rw
+      - ./workspaces:/app/workspaces:rw
 
-    command: go --servers=bitbucket,git,filesystem
+    command: go --servers=bitbucket,bash
 
 volumes:
   bitbucket-data:
