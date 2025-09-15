@@ -53,18 +53,8 @@ COPY fastagent.config.yaml /app/fastagent.config.yaml
 # Copy and make entrypoint executable as root (before USER switch)
 COPY entrypoint.sh /app/entrypoint.sh
 
-# Create a non-root user for better security and set up SSH directory
-RUN useradd --create-home --shell /bin/bash --user-group --uid 1000 appuser && \
-    mkdir -p /home/appuser/.ssh && \
-    chown -R appuser:appuser /home/appuser/.ssh && \
-    chmod 700 /home/appuser/.ssh && \
-    chown appuser:appuser /app/entrypoint.sh
-
 # Now make entrypoint executable AFTER user creation and chown
 RUN chmod +x /app/entrypoint.sh
-
-# Switch to non-root user for runtime
-USER appuser
 
 # Expose port if needed (fast-agent may expose ports)
 EXPOSE 8000
