@@ -21,25 +21,9 @@ services:
     container_name: fast-agent
     ports:
       - "8000:8000"
-    environment:
-      # Google API Configuration (required for fast-agent)
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
-
-      # Bitbucket Server Configuration (required for pull requests)
-      BITBUCKET_URL: ${BITBUCKET_URL:-}
-      BITBUCKET_TOKEN: ${BITBUCKET_TOKEN:-}
-      BITBUCKET_WORKSPACE: ${BITBUCKET_WORKSPACE:-}
-
-      # JIRA Configuration (required for ticket reading)
-      JIRA_URL: ${JIRA_URL:-}
-      JIRA_USERNAME: ${JIRA_USERNAME:-}
-      JIRA_TOKEN: ${JIRA_TOKEN:-}
-
-      # Confluence Configuration (optional, part of Atlassian integration)
-      CONFLUENCE_URL: ${CONFLUENCE_URL:-}
-      CONFLUENCE_USERNAME: ${CONFLUENCE_USERNAME:-}
-      CONFLUENCE_TOKEN: ${CONFLUENCE_TOKEN:-}
-
+    env_file:
+      - ./.env
+      
     volumes:
       # Optional: mount local config for customization
       - ./fastagent.config.yaml:/app/fastagent.config.yaml:ro
@@ -51,6 +35,17 @@ services:
       - ./workspaces:/app/workspaces:rw
 
     command: go --servers=bitbucket,bash
+
+  gpt2giga:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpt2giga
+    container_name: gpt2giga
+    ports:
+      - "8090:8090"
+    restart: unless-stopped
+    env_file:
+      - ./.env
 
 volumes:
   bitbucket-data:

@@ -1,14 +1,11 @@
-default_model: gemini-2.0-flash
+# default_model: gemini-2.0-flash
+default_model: generic.gigachat
 
 logger:
   progress_display: true
   show_chat: true
   show_tools: true
   truncate_tools: true
-
-google:
-  api_key: "${GOOGLE_API_KEY}"
-  base_url: "https://generativelanguage.googleapis.com/v1beta/openai"
 
 mcp:
   servers:

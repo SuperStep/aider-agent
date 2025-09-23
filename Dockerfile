@@ -44,6 +44,10 @@ COPY mcp-atlassian/ ./mcp-atlassian/
 WORKDIR /app/mcp-atlassian
 RUN uv pip install --system --no-cache-dir -e .
 
+# Copy gpt2giga service
+WORKDIR /app
+RUN uv pip install git+https://github.com/ai-forever/gpt2giga.git --system
+
 # Create working directory for the application
 WORKDIR /app
 
